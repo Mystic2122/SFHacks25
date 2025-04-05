@@ -85,6 +85,7 @@ print(unblured_url)
 print('\n\n\n')
 print(blur_url)
 
+<<<<<<< HEAD:db_update.py
 # username = os.getenv("MONGODB_USERNAME")
 # password = os.getenv("MONGODB_PASSWORD")
 
@@ -114,3 +115,38 @@ print(blur_url)
 #         print(f"Successfully updated {name}'s URL.")
 #     else:
 #         print(f"No document found for {name} or URL already up-to-date.")
+=======
+def uploadURLS():
+    load_dotenv()
+
+    username = os.getenv("MONGODB_USERNAME")
+    password = os.getenv("MONGODB_PASSWORD")
+
+    s = f"mongodb+srv://{username}:{password}@sfhacks25.ahebnig.mongodb.net/"
+
+    client = MongoClient(s)
+
+    db = client.sports  # Ensure this matches your actual database name
+    players = db.players
+
+    unblured_dict, blured_dict = geturl()
+    for name, url in unblured_dict.items():
+        result = players.update_one(
+            {"name": name},  # Match based on the name
+            {"$set": {"unblured_img": url}},  # Update the URL field
+        )
+        if result.modified_count > 0:
+            print(f"Successfully updated {name}'s URL.")
+        else:
+            print(f"No document found for {name} or URL already up-to-date.")
+
+    for name, url in blured_dict.items():
+        result = players.update_one(
+            {"name": name},  # Match based on the name
+            {"$set": {"blured_img": url}},  # Update the URL field
+        )
+        if result.modified_count > 0:
+            print(f"Successfully updated {name}'s URL.")
+        else:
+            print(f"No document found for {name} or URL already up-to-date.")
+>>>>>>> bd7eccafc08d9f59df16693d34eaef6a4fb2fae3:DB_scripts/db_update.py
