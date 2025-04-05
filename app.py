@@ -24,6 +24,7 @@ user_list = db.users
 
 # Initialize the user's score (in-memory for simplicity)
 user_scores = {}
+incorrect_guesses = {}  # Store incorrect guess counts
 
 
 # Route for the homepage (Login/Signup page)
@@ -40,6 +41,7 @@ def game(userId):
     # Initialize the user's score if it's their first time
     if userId not in user_scores:
         user_scores[userId] = 0
+        incorrect_guesses[userId] = 0  # Initialize incorrect guesses
 
     return render_template(
         "game.html",
@@ -51,18 +53,25 @@ def game(userId):
 
 
 # Route to handle the guess submission
+def get_initials(name):
+    # Split the name into words and take the first letter of each word
+    words = name.split()
+    initials = "".join([word[0].upper() for word in words])
+    return initials
+
+
 @app.route("/guess", methods=["POST"])
 def guess():
     userId = request.form["userId"]
     user_guess = request.form["guess"]
     player_name = request.form["player_name"]  # The actual player to guess
 
-    if user_guess.lower() == player_name.lower():
-        # Correct guess - add 1 point
+    if get_initials(user_guess).lower() == get_initials(player_name).lower():
         user_scores[userId] += 1
+        incorrect_guesses[userId] = 0  # Reset incorrect guesses
         result = "correct"
-        # Get a new player for the next round
         new_player = random.choice(list(players.find()))
+        print(f"The correct name was {player_name}")
         return jsonify(
             {
                 "result": result,
@@ -71,13 +80,37 @@ def guess():
                     "name": new_player["name"],
                     "blured_img": new_player["blured_img"],
                 },
+                "full_name": player_name,
             }
         )
     else:
-        # Incorrect guess - reset the score
-        user_scores[userId] = 0
+        # Incorrect guess
+        incorrect_guesses[userId] = incorrect_guesses.get(userId, 0) + 1
+        user_scores[userId] = 0  # Reset score
         result = "incorrect"
-        return jsonify({"result": result, "score": user_scores[userId]})
+        player = players.find_one({"name": player_name})
+        height = player.get("height", "Unknown")  # Get height, default to "Unknown"
+        teams = player.get("teams", [])  # Get teams, default to empty list
+
+        if incorrect_guesses[userId] >= 2:
+            return jsonify(
+                {
+                    "result": result,
+                    "score": user_scores[userId],
+                    "height": height,
+                    "teams": teams,
+                    "show_info": True,  # Flag to show info
+                }
+            )
+        else:
+            return jsonify(
+                {
+                    "result": result,
+                    "score": user_scores[userId],
+                    "height": height,
+                    "show_info": False,  # Flag to not show info
+                }
+            )
 
 
 @app.route("/login", methods=["POST"])
