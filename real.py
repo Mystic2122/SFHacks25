@@ -97,7 +97,6 @@ nba_players = [
     "Kristaps Porzingis",
     "Rudy Gobert",
     "Karl-Anthony Towns",
-    "Jaren Jackson Jr.",
     "Brandon Ingram",
 ]
 player_ids = []
