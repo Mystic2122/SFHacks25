@@ -113,6 +113,7 @@ for team_id in team_ids:
     for player in roster_data.get("players", []):
         full_name = player["full_name"]
         if full_name in nba_players:
+            print(player)
             print(
                 f"ID: {player['id']}\nName: {player['full_name']}\nHeight: {player['height']}\n"
                 f"Position: {player['primary_position']}\nJersey Number: {player['jersey_number']}"
