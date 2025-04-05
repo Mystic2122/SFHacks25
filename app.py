@@ -96,5 +96,82 @@ def login():
         return jsonify({"error": "Invalid username or password"}), 400
 
 
+@app.route("/autocomplete", methods=["GET"])
+def autocomplete():
+    query = request.args.get("q", "").lower()  # Get the query from the request
+    if not query:
+        return jsonify([])  # Return an empty list if no query is provided
+
+    # Find player names that start with the query (case-insensitive)
+    matching_players = players.find({"name": {"$regex": f"^{query}", "$options": "i"}})
+    player_names = [player["name"] for player in matching_players]
+
+    return jsonify(player_names)  # Return the list of matching player names
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+
+<script>
+  const guessInput = document.getElementById("guess");
+  const autocompleteList = document.createElement("ul");
+  autocompleteList.style.position = "absolute";
+  autocompleteList.style.backgroundColor = "white";
+  autocompleteList.style.border = "1px solid #ccc";
+  autocompleteList.style.listStyleType = "none";
+  autocompleteList.style.padding = "0";
+  autocompleteList.style.margin = "0";
+  autocompleteList.style.width = guessInput.offsetWidth + "px";
+  autocompleteList.style.zIndex = "1000";
+  autocompleteList.style.display = "none";
+  document.body.appendChild(autocompleteList);
+
+  guessInput.addEventListener("input", function () {
+    const query = guessInput.value.trim();
+
+    if (query.length === 0) {
+      autocompleteList.style.display = "none";
+      return;
+    }
+
+    fetch(`/autocomplete?q=${encodeURIComponent(query)}`)
+      .then((response) => response.json())
+      .then((data) => {
+        autocompleteList.innerHTML = ""; // Clear previous suggestions
+        if (data.length === 0) {
+          autocompleteList.style.display = "none";
+          return;
+        }
+
+        data.forEach((name) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = name;
+          listItem.style.padding = "5px";
+          listItem.style.cursor = "pointer";
+
+          listItem.addEventListener("click", function () {
+            guessInput.value = name; // Set the input value to the selected name
+            autocompleteList.style.display = "none"; // Hide the dropdown
+          });
+
+          autocompleteList.appendChild(listItem);
+        });
+
+        const rect = guessInput.getBoundingClientRect();
+        autocompleteList.style.top = rect.bottom + window.scrollY + "px";
+        autocompleteList.style.left = rect.left + window.scrollX + "px";
+        autocompleteList.style.display = "block";
+      })
+      .catch((error) => {
+        console.error("Autocomplete error:", error);
+        autocompleteList.style.display = "none";
+      });
+  });
+
+  // Hide the dropdown when clicking outside
+  document.addEventListener("click", function (event) {
+    if (!guessInput.contains(event.target) && !autocompleteList.contains(event.target)) {
+      autocompleteList.style.display = "none";
+    }
+  });
+</script>
