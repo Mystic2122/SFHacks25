@@ -31,7 +31,7 @@
     <div class="image-container">
       <img
         id="playerImage"
-        src="{{ player['blured_img'] }}"
+        src="{{ player_data['blured_img'] }}"
         alt="Player Image"
         style="max-width: 300px; max-height: 400px"
       />
@@ -46,7 +46,11 @@
         required
         aria-label="Your Guess"
       />
-      <input type="hidden" name="player_name" value="{{ player['name'] }}" />
+      <input
+        type="hidden"
+        name="player_name"
+        value="{{ player_data['name'] }}"
+      />
       <input type="hidden" name="userId" value="{{ userId }}" />
       <button type="submit">Submit Guess</button>
     </form>
@@ -84,13 +88,15 @@
               );
 
               if (data.result === "correct") {
-                resultDiv.innerHTML =
-                  '<p class="correct">Correct! You earned 1 point.</p>';
+                resultDiv.innerHTML = `<p class="correct">Correct! It's ${data.full_name}. You earned 1 point.</p>`;
                 playerImage.src = data.new_player.blured_img;
                 playerNameInput.value = data.new_player.name;
               } else {
-                resultDiv.innerHTML =
-                  '<p class="incorrect">Incorrect. Try again!</p>';
+                let incorrectMessage = `<p class="incorrect">Incorrect.<br>This player is ${data.height}.</p>`;
+                if (data.show_info) {
+                  incorrectMessage += `<p>Teams: ${data.teams.join(", ")}</p>`;
+                }
+                resultDiv.innerHTML = incorrectMessage;
               }
 
               scoreSpan.innerHTML = data.score;
