@@ -3,7 +3,9 @@ import os
 from dotenv import load_dotenv
 import time
 from pymongo import MongoClient
+from flask import Flask, request, jsonify
 
+app = Flask(__name__)
 
 def get_player_data():
     player_ids = [
@@ -12,6 +14,7 @@ def get_player_data():
         "6c60282d-165a-4cba-8e5a-4f2d9d4c5905",
         "65700e81-3aa0-49a9-8a94-004f2cfb64e5",
         "98136da3-452f-49dc-a794-1ee9c76443f2",
+        "3e492a6a-ed3c-499d-b3f5-ff68ca16f6fd",
         "9983bed6-e53c-4c65-a90a-51546a0e3352",
         "cf418e0c-de9d-438f-a1ac-3be539a56c42",
         "ab532a66-9314-4d57-ade7-bb54a70c65ad",
@@ -123,3 +126,32 @@ player_data = get_player_data()
 
 # Insert the player data into the collection
 result = players.insert_many(player_data)
+
+@app.route("/guess", methods=["POST"])
+def guess_player():
+    user_guess = request.form.get("guess")
+    player_name = request.form.get("player_name")
+
+    # Check if the guess is correct
+    if user_guess.lower() == player_name.lower():
+        # Correct guess
+        return jsonify({"result": "correct", "score": 1})
+
+    # Incorrect guess: Fetch player data for hints
+    player_data = players.find_one({"name": {"$regex": f"^{player_name}$", "$options": "i"}})
+
+    if player_data:
+        # Generate a hint based on available data
+        if player_data.get("college"):
+            hint = f"This player attended {player_data['college']}."
+        elif player_data.get("teams"):
+            hint = f"This player has played for the {player_data['teams'][0]}."
+        elif player_data.get("position"):
+            hint = f"This player plays as a {player_data['position']}."
+        else:
+            hint = "No hint available."
+
+        return jsonify({"result": "incorrect", "hint": hint, "score": 0})
+    else:
+        # Player data not found
+        return jsonify({"result": "incorrect", "hint": "No data available.", "score": 0})
