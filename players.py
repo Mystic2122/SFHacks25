@@ -12,7 +12,6 @@ def get_player_data():
         "6c60282d-165a-4cba-8e5a-4f2d9d4c5905",
         "65700e81-3aa0-49a9-8a94-004f2cfb64e5",
         "98136da3-452f-49dc-a794-1ee9c76443f2",
-        "3e492a6a-ed3c-499d-b3f5-ff68ca16f6fd",
         "9983bed6-e53c-4c65-a90a-51546a0e3352",
         "cf418e0c-de9d-438f-a1ac-3be539a56c42",
         "ab532a66-9314-4d57-ade7-bb54a70c65ad",

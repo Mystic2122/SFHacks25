@@ -5,17 +5,17 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 
+
 def geturl():
     load_dotenv()
-    sercet = os.getenv("Sercet")
-    # Configuration       
-    cloudinary.config( 
-        cloud_name = "da0ekt7db", 
-        api_key = "597192899643245", 
-        api_secret = sercet, 
-        secure=True
+    sercet = os.getenv("CloudSercet")
+    # Configuration
+    cloudinary.config(
+        cloud_name="da0ekt7db",
+        api_key="597192899643245",
+        api_secret=sercet,
+        secure=True,
     )
-
 
     load_dotenv()
 
@@ -25,7 +25,6 @@ def geturl():
     s = f"mongodb+srv://{username}:{password}@sfhacks25.ahebnig.mongodb.net/"
 
     client = MongoClient(s)
-
 
     names = [
         "LeBron James",
@@ -58,7 +57,7 @@ def geturl():
             # Upload image to Cloudinary
             response = cloudinary.uploader.upload(image_path)
 
-            image_url = response['secure_url']
+            image_url = response["secure_url"]
 
             print(f"Image uploaded successfully. URL: {image_url}")
             return image_url
@@ -66,17 +65,48 @@ def geturl():
             print(f"Error uploading image: {e}")
             return None
 
-    blured = []
-    unblured = []
+    blured = {}
+    unblured = {}
 
     for name in names:
         path = f"NbaPlayer\{name}.jpg"
         url = upload_image(path)
-        unblured.append({name:url})
+        unblured[name] = url
 
     for name in names:
         path = f"NbaPlayerBlured\{name}-modified.jpg"
         url = upload_image(path)
-        blured.append({name:url})
+        blured[name] = url
 
-    return unblured,blured
+    return unblured, blured
+
+
+username = os.getenv("GAME_UN")
+password = os.getenv("GAME_PW")
+
+s = f"mongodb+srv://{username}:{password}@sfhacks25.ahebnig.mongodb.net/"
+
+client = MongoClient(s)
+db = client.sports
+players = db.players
+
+unblured_dict, blured_dict = geturl()
+for name, url in unblured_dict.items():
+    result = players.update_one(
+        {"name": name},  # Match based on the name
+        {"$set": {"unblured_img": url}},  # Update the URL field
+    )
+    if result.modified_count > 0:
+        print(f"Successfully updated {name}'s URL.")
+    else:
+        print(f"No document found for {name} or URL already up-to-date.")
+
+for name, url in blured_dict.items():
+    result = players.update_one(
+        {"name": name},  # Match based on the name
+        {"$set": {"blured_img": url}},  # Update the URL field
+    )
+    if result.modified_count > 0:
+        print(f"Successfully updated {name}'s URL.")
+    else:
+        print(f"No document found for {name} or URL already up-to-date.")
