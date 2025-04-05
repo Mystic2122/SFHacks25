@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Login/Signup</title>
+    <style>
+      /* Basic styling - replace with your own CSS */
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      form {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        width: 300px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+      }
+      .error {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to the Game</h1>
+    </header>
+
+    <main>
+      <form id="loginForm" action="/login" method="POST">
+        <h2>Login</h2>
+        <div id="loginError" class="error"></div>
+        <label for="username">Username:</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          aria-label="Username"
+        /><br />
+
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          aria-label="Password"
+        /><br />
+
+        <button type="submit">Login</button>
+      </form>
+
+      <p>or</p>
+
+      <form action="/signup" method="POST">
+        <h2>Signup</h2>
+        <label for="username">Create a username:</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          aria-label="Create a username"
+        /><br />
+
+        <label for="password">Create a password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          aria-label="Create a password"
+        /><br />
+
+        <label for="confirm_password">Confirm password:</label>
+        <input
+          type="password"
+          id="confirm_password"
+          name="confirm_password"
+          required
+          aria-label="Confirm password"
+        /><br />
+
+        <button type="submit">Signup</button>
+      </form>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 My Game</p>
+    </footer>
+
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); // Prevent the default form submission
+
+          const form = event.target;
+          const formData = new FormData(form);
+
+          fetch(form.action, {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.redirect) {
+                window.location.href = data.redirect; // Redirect on successful login
+              } else if (data.error) {
+                document.getElementById("loginError").innerText = data.error; // Display error message
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              document.getElementById("loginError").innerText =
+                "An error occurred. Please try again.";
+            });
+        });
+    </script>
+  </body>
+</html>

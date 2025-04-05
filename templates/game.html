@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guess the Player</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      .image-container {
+        margin-bottom: 20px;
+      }
+      .score {
+        margin-top: 20px;
+      }
+      .correct {
+        color: green;
+      }
+      .incorrect {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Guess the Sports Player</h1>
+
+    <!-- Show blurred image of the player -->
+    <div class="image-container">
+      <img
+        id="playerImage"
+        src="{{ player['blured_img'] }}"
+        alt="Player Image"
+        style="max-width: 300px; max-height: 400px"
+      />
+    </div>
+
+    <form id="guessForm" action="/guess" method="POST">
+      <label for="guess">Your Guess:</label>
+      <input
+        type="text"
+        id="guess"
+        name="guess"
+        required
+        aria-label="Your Guess"
+      />
+      <input type="hidden" name="player_name" value="{{ player['name'] }}" />
+      <input type="hidden" name="userId" value="{{ userId }}" />
+      <button type="submit">Submit Guess</button>
+    </form>
+
+    <div class="score">
+      <h3>Your Score: <span id="score">{{ score }}</span></h3>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+      document
+        .getElementById("guessForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const formData = new FormData(event.target);
+
+          fetch("/guess", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then((data) => {
+              const resultDiv = document.getElementById("result");
+              const scoreSpan = document.getElementById("score");
+              const playerImage = document.getElementById("playerImage");
+              const playerNameInput = document.querySelector(
+                'input[name="player_name"]'
+              );
+
+              if (data.result === "correct") {
+                resultDiv.innerHTML =
+                  '<p class="correct">Correct! You earned 1 point.</p>';
+                playerImage.src = data.new_player.blured_img;
+                playerNameInput.value = data.new_player.name;
+              } else {
+                resultDiv.innerHTML =
+                  '<p class="incorrect">Incorrect. Try again!</p>';
+              }
+
+              scoreSpan.innerHTML = data.score;
+            })
+            .catch((error) => {
+              console.error("Fetch error:", error);
+              document.getElementById("result").innerHTML =
+                "<p class='error'>An error occurred. Please try again.</p>";
+            });
+        });
+    </script>
+  </body>
+</html>

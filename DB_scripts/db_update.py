@@ -81,32 +81,36 @@ def geturl():
     return unblured, blured
 
 
-username = os.getenv("GAME_UN")
-password = os.getenv("GAME_PW")
+def uploadURLS():
+    load_dotenv()
 
-s = f"mongodb+srv://{username}:{password}@sfhacks25.ahebnig.mongodb.net/"
+    username = os.getenv("MONGODB_USERNAME")
+    password = os.getenv("MONGODB_PASSWORD")
 
-client = MongoClient(s)
-db = client.sports
-players = db.players
+    s = f"mongodb+srv://{username}:{password}@sfhacks25.ahebnig.mongodb.net/"
 
-unblured_dict, blured_dict = geturl()
-for name, url in unblured_dict.items():
-    result = players.update_one(
-        {"name": name},  # Match based on the name
-        {"$set": {"unblured_img": url}},  # Update the URL field
-    )
-    if result.modified_count > 0:
-        print(f"Successfully updated {name}'s URL.")
-    else:
-        print(f"No document found for {name} or URL already up-to-date.")
+    client = MongoClient(s)
 
-for name, url in blured_dict.items():
-    result = players.update_one(
-        {"name": name},  # Match based on the name
-        {"$set": {"blured_img": url}},  # Update the URL field
-    )
-    if result.modified_count > 0:
-        print(f"Successfully updated {name}'s URL.")
-    else:
-        print(f"No document found for {name} or URL already up-to-date.")
+    db = client.sports  # Ensure this matches your actual database name
+    players = db.players
+
+    unblured_dict, blured_dict = geturl()
+    for name, url in unblured_dict.items():
+        result = players.update_one(
+            {"name": name},  # Match based on the name
+            {"$set": {"unblured_img": url}},  # Update the URL field
+        )
+        if result.modified_count > 0:
+            print(f"Successfully updated {name}'s URL.")
+        else:
+            print(f"No document found for {name} or URL already up-to-date.")
+
+    for name, url in blured_dict.items():
+        result = players.update_one(
+            {"name": name},  # Match based on the name
+            {"$set": {"blured_img": url}},  # Update the URL field
+        )
+        if result.modified_count > 0:
+            print(f"Successfully updated {name}'s URL.")
+        else:
+            print(f"No document found for {name} or URL already up-to-date.")
