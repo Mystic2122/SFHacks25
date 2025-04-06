@@ -44,6 +44,8 @@ def game(userId):
         high_score = user.get("HighScore", 0)  # Default to 0 if not found
     else:
         high_score = 0  # Default to 0 if user not found
+        # If user doesn't exist, create a new user entry with default high score
+        user_list.insert_one({"Userid": userId, "HighScore": 0})
 
     # Initialize the user's score if it's their first time
     if userId not in user_scores:
@@ -123,6 +125,22 @@ def guess():
 
             # Reset user's score and incorrect guesses
             current_score = user_scores.get(userId, 0)
+
+            # Get the user's current high score from the database
+            user = user_list.find_one({"Userid": userId})
+            if user:
+                old_high_score = user.get("HighScore", 0)
+            else:
+                old_high_score = 0
+
+            # Check if the current score is greater than the old high score
+            if current_score > old_high_score:
+                # Update the user's high score in the database
+                user_list.update_one(
+                    {"Userid": userId}, {"$set": {"HighScore": current_score}}
+                )
+                high_score = current_score  # Update high_score to the new value
+
             user_scores[userId] = 0
             incorrect_guesses[userId] = 0
 
