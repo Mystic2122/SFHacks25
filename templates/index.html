@@ -219,10 +219,10 @@
             .then((response) => response.json())
             .then((data) => {
               if (data.redirect) {
-                window.location.href = data.redirect; // Redirect on successful signup
+                window.location.href = data.redirect;
               } else if (data.error) {
-                // Handle signup error (e.g., display error message)
                 console.error("Signup error:", data.error);
+                // Handle signup error (e.g., display error message)
               }
             })
             .catch((error) => {
