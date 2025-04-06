@@ -70,17 +70,17 @@ def guess():
         user_scores[userId] += 1
         incorrect_guesses[userId] = 0  # Reset incorrect guesses
         result = "correct"
-        new_player = random.choice(list(players.find()))
-        print(f"The correct name was {player_name}")
+
+        # Get the unblurred image
+        correct_player = players.find_one({"name": player_name})
+        unblured_img = correct_player.get("unblured_img", "")
+
         return jsonify(
             {
                 "result": result,
                 "score": user_scores[userId],
-                "new_player": {
-                    "name": new_player["name"],
-                    "blured_img": new_player["blured_img"],
-                },
                 "full_name": player_name,
+                "unblured_img": unblured_img,
             }
         )
     else:

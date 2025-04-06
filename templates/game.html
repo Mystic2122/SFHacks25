@@ -12,6 +12,8 @@
       }
       .image-container {
         margin-bottom: 20px;
+        position: relative; /* Make this a positioning context */
+        height: 400px; /* Set a fixed height to maintain layout */
       }
       .score {
         margin-top: 20px;
@@ -21,6 +23,26 @@
       }
       .incorrect {
         color: red;
+      }
+      #playerImage {
+        max-width: 300px;
+        max-height: 400px;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #unblurredImage {
+        max-width: 300px;
+        max-height: 400px;
+        margin-top: 20px;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #nextButton {
+        margin-top: 10px; /* Adjust as needed */
       }
     </style>
   </head>
@@ -35,10 +57,16 @@
         alt="Player Image"
         style="max-width: 300px; max-height: 400px"
       />
+      <img
+        id="unblurredImage"
+        src=""
+        alt="Unblurred Player"
+        style="display: none"
+      />
     </div>
 
     <form id="guessForm" action="/guess" method="POST">
-      <label for="guess">Your Guess:</label>
+      <label for="guess">Your Guess (Initials):</label>
       <input
         type="text"
         id="guess"
@@ -60,6 +88,9 @@
     </div>
 
     <div id="result"></div>
+
+    <!-- Next button (initially hidden) -->
+    <button id="nextButton" style="display: none">Next</button>
 
     <script>
       document
@@ -83,14 +114,22 @@
               const resultDiv = document.getElementById("result");
               const scoreSpan = document.getElementById("score");
               const playerImage = document.getElementById("playerImage");
-              const playerNameInput = document.querySelector(
-                'input[name="player_name"]'
-              );
+              const unblurredImage = document.getElementById("unblurredImage");
+              const nextButton = document.getElementById("nextButton");
 
               if (data.result === "correct") {
                 resultDiv.innerHTML = `<p class="correct">Correct! It's ${data.full_name}. You earned 1 point.</p>`;
-                playerImage.src = data.new_player.blured_img;
-                playerNameInput.value = data.new_player.name;
+
+                // Show the unblurred image
+                unblurredImage.src = data.unblured_img;
+                unblurredImage.style.display = "block";
+
+                // Hide the blurred image and guess form
+                playerImage.style.display = "none";
+                document.getElementById("guessForm").style.display = "none";
+
+                // Show the next button
+                nextButton.style.display = "inline-block";
               } else {
                 let incorrectMessage = `<p class="incorrect">Incorrect.<br>This player is ${data.height}.</p>`;
                 if (data.show_info) {
@@ -106,6 +145,12 @@
               document.getElementById("result").innerHTML =
                 "<p class='error'>An error occurred. Please try again.</p>";
             });
+        });
+
+      document
+        .getElementById("nextButton")
+        .addEventListener("click", function () {
+          window.location.reload(); // Reload the page to get a new player
         });
     </script>
   </body>
