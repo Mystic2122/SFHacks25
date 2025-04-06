@@ -38,6 +38,13 @@ def index():
 def game(userId):
     player = random.choice(list(players.find()))  # Randomly selects a player
 
+    # Get the user's high score from the database
+    user = user_list.find_one({"Userid": userId})
+    if user:
+        high_score = user.get("HighScore", 0)  # Default to 0 if not found
+    else:
+        high_score = 0  # Default to 0 if user not found
+
     # Initialize the user's score if it's their first time
     if userId not in user_scores:
         user_scores[userId] = 0
@@ -48,6 +55,7 @@ def game(userId):
         userId=userId,
         player=player,
         score=user_scores[userId],
+        high_score=high_score,  # Pass the high score to the template
         player_data=player,
     )
 
@@ -75,6 +83,20 @@ def guess():
         correct_player = players.find_one({"name": player_name})
         unblured_img = correct_player.get("unblured_img", "")
 
+        # Get the user's current high score from the database
+        user = user_list.find_one({"Userid": userId})
+        if user:
+            old_high_score = user.get("HighScore", 0)
+        else:
+            old_high_score = 0
+
+        # Check if the current score is greater than the old high score
+        if user_scores[userId] > old_high_score:
+            # Update the user's high score in the database
+            user_list.update_one(
+                {"Userid": userId}, {"$set": {"HighScore": user_scores[userId]}}
+            )
+
         return jsonify(
             {
                 "result": result,
@@ -86,13 +108,41 @@ def guess():
     else:
         # Incorrect guess
         incorrect_guesses[userId] = incorrect_guesses.get(userId, 0) + 1
-        user_scores[userId] = 0  # Reset score
         result = "incorrect"
         player = players.find_one({"name": player_name})
         height = player.get("height", "Unknown")  # Get height, default to "Unknown"
         teams = player.get("teams", [])  # Get teams, default to empty list
 
-        if incorrect_guesses[userId] >= 2:
+        if incorrect_guesses[userId] >= 3:
+            # Get the user's high score from the database
+            user = user_list.find_one({"Userid": userId})
+            if user:
+                high_score = user.get("HighScore", 0)
+            else:
+                high_score = 0
+
+            # Reset user's score and incorrect guesses
+            current_score = user_scores.get(userId, 0)
+            user_scores[userId] = 0
+            incorrect_guesses[userId] = 0
+
+            # Get the unblured image
+            correct_player = players.find_one({"name": player_name})
+            if correct_player:
+                unblured_img = correct_player.get("unblured_img", "")
+            else:
+                unblured_img = ""
+
+            return jsonify(
+                {
+                    "result": "game_over",
+                    "current_score": current_score,
+                    "high_score": high_score,
+                    "correct_name": player_name,  # Send the correct name
+                    "unblured_img": unblured_img,  # Send the unblurred image URL
+                }
+            )
+        elif incorrect_guesses[userId] == 2:
             return jsonify(
                 {
                     "result": result,
