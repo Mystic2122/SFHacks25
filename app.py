@@ -24,6 +24,7 @@ user_list = db.users
 
 # Initialize the user's score (in-memory for simplicity)
 user_scores = {}
+incorrect_guesses = {}  # Store incorrect guess counts
 
 
 # Route for the homepage (Login/Signup page)
@@ -37,47 +38,147 @@ def index():
 def game(userId):
     player = random.choice(list(players.find()))  # Randomly selects a player
 
+    # Get the user's high score from the database
+    user = user_list.find_one({"Userid": userId})
+    if user:
+        high_score = user.get("HighScore", 0)  # Default to 0 if not found
+    else:
+        high_score = 0  # Default to 0 if user not found
+        # If user doesn't exist, create a new user entry with default high score
+        user_list.insert_one({"Userid": userId, "HighScore": 0})
+
     # Initialize the user's score if it's their first time
     if userId not in user_scores:
         user_scores[userId] = 0
+        incorrect_guesses[userId] = 0  # Initialize incorrect guesses
 
     return render_template(
         "game.html",
         userId=userId,
         player=player,
         score=user_scores[userId],
+        high_score=high_score,  # Pass the high score to the template
         player_data=player,
     )
 
 
 # Route to handle the guess submission
+def get_initials(name):
+    # Split the name into words and take the first letter of each word
+    words = name.split()
+    initials = "".join([word[0].upper() for word in words])
+    return initials
+
+
 @app.route("/guess", methods=["POST"])
 def guess():
     userId = request.form["userId"]
     user_guess = request.form["guess"]
     player_name = request.form["player_name"]  # The actual player to guess
 
-    if user_guess.lower() == player_name.lower():
-        # Correct guess - add 1 point
+    if get_initials(user_guess).lower() == get_initials(player_name).lower():
         user_scores[userId] += 1
+        incorrect_guesses[userId] = 0  # Reset incorrect guesses
         result = "correct"
-        # Get a new player for the next round
-        new_player = random.choice(list(players.find()))
+
+        # Get the unblurred image
+        correct_player = players.find_one({"name": player_name})
+        unblured_img = correct_player.get("unblured_img", "")
+
+        # Get the user's current high score from the database
+        user = user_list.find_one({"Userid": userId})
+        if user:
+            old_high_score = user.get("HighScore", 0)
+        else:
+            old_high_score = 0
+
+        # Check if the current score is greater than the old high score
+        if user_scores[userId] > old_high_score:
+            # Update the user's high score in the database
+            user_list.update_one(
+                {"Userid": userId}, {"$set": {"HighScore": user_scores[userId]}}
+            )
+
         return jsonify(
             {
                 "result": result,
                 "score": user_scores[userId],
-                "new_player": {
-                    "name": new_player["name"],
-                    "blured_img": new_player["blured_img"],
-                },
+                "full_name": player_name,
+                "unblured_img": unblured_img,
             }
         )
     else:
-        # Incorrect guess - reset the score
-        user_scores[userId] = 0
+        # Incorrect guess
+        incorrect_guesses[userId] = incorrect_guesses.get(userId, 0) + 1
         result = "incorrect"
-        return jsonify({"result": result, "score": user_scores[userId]})
+        player = players.find_one({"name": player_name})
+        height = player.get("height", "Unknown")  # Get height, default to "Unknown"
+        teams = player.get("teams", [])  # Get teams, default to empty list
+
+        if incorrect_guesses[userId] >= 3:
+            # Get the user's high score from the database
+            user = user_list.find_one({"Userid": userId})
+            if user:
+                high_score = user.get("HighScore", 0)
+            else:
+                high_score = 0
+
+            # Reset user's score and incorrect guesses
+            current_score = user_scores.get(userId, 0)
+
+            # Get the user's current high score from the database
+            user = user_list.find_one({"Userid": userId})
+            if user:
+                old_high_score = user.get("HighScore", 0)
+            else:
+                old_high_score = 0
+
+            # Check if the current score is greater than the old high score
+            if current_score > old_high_score:
+                # Update the user's high score in the database
+                user_list.update_one(
+                    {"Userid": userId}, {"$set": {"HighScore": current_score}}
+                )
+                high_score = current_score  # Update high_score to the new value
+
+            user_scores[userId] = 0
+            incorrect_guesses[userId] = 0
+
+            # Get the unblured image
+            correct_player = players.find_one({"name": player_name})
+            if correct_player:
+                unblured_img = correct_player.get("unblured_img", "")
+            else:
+                unblured_img = ""
+
+            return jsonify(
+                {
+                    "result": "game_over",
+                    "current_score": current_score,
+                    "high_score": high_score,
+                    "correct_name": player_name,  # Send the correct name
+                    "unblured_img": unblured_img,  # Send the unblurred image URL
+                }
+            )
+        elif incorrect_guesses[userId] == 2:
+            return jsonify(
+                {
+                    "result": result,
+                    "score": user_scores[userId],
+                    "height": height,
+                    "teams": teams,
+                    "show_info": True,  # Flag to show info
+                }
+            )
+        else:
+            return jsonify(
+                {
+                    "result": result,
+                    "score": user_scores[userId],
+                    "height": height,
+                    "show_info": False,  # Flag to not show info
+                }
+            )
 
 
 @app.route("/login", methods=["POST"])
@@ -111,67 +212,3 @@ def autocomplete():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-<script>
-  const guessInput = document.getElementById("guess");
-  const autocompleteList = document.createElement("ul");
-  autocompleteList.style.position = "absolute";
-  autocompleteList.style.backgroundColor = "white";
-  autocompleteList.style.border = "1px solid #ccc";
-  autocompleteList.style.listStyleType = "none";
-  autocompleteList.style.padding = "0";
-  autocompleteList.style.margin = "0";
-  autocompleteList.style.width = guessInput.offsetWidth + "px";
-  autocompleteList.style.zIndex = "1000";
-  autocompleteList.style.display = "none";
-  document.body.appendChild(autocompleteList);
-
-  guessInput.addEventListener("input", function () {
-    const query = guessInput.value.trim();
-
-    if (query.length === 0) {
-      autocompleteList.style.display = "none";
-      return;
-    }
-
-    fetch(`/autocomplete?q=${encodeURIComponent(query)}`)
-      .then((response) => response.json())
-      .then((data) => {
-        autocompleteList.innerHTML = ""; // Clear previous suggestions
-        if (data.length === 0) {
-          autocompleteList.style.display = "none";
-          return;
-        }
-
-        data.forEach((name) => {
-          const listItem = document.createElement("li");
-          listItem.textContent = name;
-          listItem.style.padding = "5px";
-          listItem.style.cursor = "pointer";
-
-          listItem.addEventListener("click", function () {
-            guessInput.value = name; // Set the input value to the selected name
-            autocompleteList.style.display = "none"; // Hide the dropdown
-          });
-
-          autocompleteList.appendChild(listItem);
-        });
-
-        const rect = guessInput.getBoundingClientRect();
-        autocompleteList.style.top = rect.bottom + window.scrollY + "px";
-        autocompleteList.style.left = rect.left + window.scrollX + "px";
-        autocompleteList.style.display = "block";
-      })
-      .catch((error) => {
-        console.error("Autocomplete error:", error);
-        autocompleteList.style.display = "none";
-      });
-  });
-
-  // Hide the dropdown when clicking outside
-  document.addEventListener("click", function (event) {
-    if (!guessInput.contains(event.target) && !autocompleteList.contains(event.target)) {
-      autocompleteList.style.display = "none";
-    }
-  });
-</script>

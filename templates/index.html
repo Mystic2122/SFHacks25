@@ -5,133 +5,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Game Login/Signup</title>
     <style>
-      /* Basic styling - replace with your own CSS */
+      /* General Styles */
       body {
-        font-family: sans-serif;
-        margin: 20px;
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f4f7f6;
+        color: #333;
       }
-      form {
+
+      main {
+        text-align: center;
+        padding: 40px;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        max-width: 90%;
+      }
+
+      h1 {
+        color: #2c3e50;
         margin-bottom: 20px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        width: 300px;
       }
+
+      /* Button Styles */
+      button {
+        background-color: #3498db;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        margin: 5px;
+      }
+
+      button:hover {
+        background-color: #2980b9;
+      }
+
+      /* Form Container Styles */
+      .form-container {
+        margin-top: 20px;
+        padding: 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        display: none; /* Initially hidden */
+      }
+
       label {
         display: block;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: bold;
       }
+
       input {
         width: 100%;
-        padding: 8px;
-        margin-bottom: 10px;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
         box-sizing: border-box;
+        font-size: 14px;
       }
-      button {
-        background-color: #4caf50;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        cursor: pointer;
-      }
+
+      /* Error Message Style */
       .error {
-        color: red;
+        color: #e74c3c;
+        margin-top: 10px;
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Welcome to the Game</h1>
-    </header>
-
     <main>
-      <form id="loginForm" action="/login" method="POST">
+      <h1>Guess the NBA Player</h1>
+      <button id="loginButton">Login</button>
+      <button id="signupButton">Signup</button>
+
+      <div id="loginForm" class="form-container">
         <h2>Login</h2>
         <div id="loginError" class="error"></div>
-        <label for="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          required
-          aria-label="Username"
-        /><br />
+        <form id="loginActualForm">
+          <label for="username">Username:</label>
+          <input
+            type="text"
+            id="usernameLogin"
+            name="username"
+            required
+            aria-label="Username"
+          /><br />
 
-        <label for="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          required
-          aria-label="Password"
-        /><br />
+          <label for="password">Password:</label>
+          <input
+            type="password"
+            id="passwordLogin"
+            name="password"
+            required
+            aria-label="Password"
+          /><br />
 
-        <button type="submit">Login</button>
-      </form>
+          <button type="submit" id="loginSubmit">Login</button>
+        </form>
+      </div>
 
-      <p>or</p>
-
-      <form action="/signup" method="POST">
+      <div id="signupForm" class="form-container">
         <h2>Signup</h2>
-        <label for="username">Create a username:</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          required
-          aria-label="Create a username"
-        /><br />
+        <form id="signupActualForm">
+          <label for="username">Create a username:</label>
+          <input
+            type="text"
+            id="usernameSignup"
+            name="username"
+            required
+            aria-label="Create a username"
+          /><br />
 
-        <label for="password">Create a password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          required
-          aria-label="Create a password"
-        /><br />
+          <label for="password">Create a password:</label>
+          <input
+            type="password"
+            id="passwordSignup"
+            name="password"
+            required
+            aria-label="Create a password"
+          /><br />
 
-        <label for="confirm_password">Confirm password:</label>
-        <input
-          type="password"
-          id="confirm_password"
-          name="confirm_password"
-          required
-          aria-label="Confirm password"
-        /><br />
+          <label for="confirm_password">Confirm password:</label>
+          <input
+            type="password"
+            id="confirm_password"
+            name="confirm_password"
+            required
+            aria-label="Confirm password"
+          /><br />
 
-        <button type="submit">Signup</button>
-      </form>
+          <button type="submit" id="signupSubmit">Signup</button>
+        </form>
+      </div>
     </main>
 
-    <footer>
-      <p>&copy; 2025 My Game</p>
-    </footer>
-
     <script>
+      // Initially hide the forms
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("signupForm").style.display = "none";
+
       document
-        .getElementById("loginForm")
+        .getElementById("loginButton")
+        .addEventListener("click", function () {
+          document.getElementById("loginForm").style.display = "block";
+          document.getElementById("signupForm").style.display = "none";
+        });
+
+      document
+        .getElementById("signupButton")
+        .addEventListener("click", function () {
+          document.getElementById("signupForm").style.display = "block";
+          document.getElementById("loginForm").style.display = "none";
+        });
+
+      // Login form submission
+      document
+        .getElementById("loginActualForm")
         .addEventListener("submit", function (event) {
-          event.preventDefault(); // Prevent the default form submission
+          event.preventDefault();
 
           const form = event.target;
           const formData = new FormData(form);
 
-          fetch(form.action, {
+          fetch("/login", {
             method: "POST",
             body: formData,
           })
             .then((response) => response.json())
             .then((data) => {
+              console.log("Login response:", data); // Add this line
+
               if (data.redirect) {
                 window.location.href = data.redirect; // Redirect on successful login
               } else if (data.error) {
-                document.getElementById("loginError").innerText = data.error; // Display error message
+                document.getElementById("loginError").innerText = data.error;
+              } else {
+                console.error("Unexpected response:", data);
+                document.getElementById("loginError").innerText =
+                  "An unexpected error occurred.";
               }
             })
             .catch((error) => {
               console.error("Error:", error);
               document.getElementById("loginError").innerText =
                 "An error occurred. Please try again.";
+            });
+        });
+
+      // Signup form submission
+      document
+        .getElementById("signupActualForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const form = event.target;
+          const formData = new FormData(form);
+
+          fetch("/signup", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.redirect) {
+                window.location.href = data.redirect; // Redirect on successful signup
+              } else if (data.error) {
+                // Handle signup error (e.g., display error message)
+                console.error("Signup error:", data.error);
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              // Handle signup error (e.g., display error message)
             });
         });
     </script>
