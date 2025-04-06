@@ -44,6 +44,11 @@
       #nextButton {
         margin-top: 10px; /* Adjust as needed */
       }
+      #gameOver {
+        margin-top: 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body>
@@ -62,6 +67,20 @@
         src=""
         alt="Unblurred Player"
         style="display: none"
+      />
+      <img
+        id="gameOverImage"
+        src=""
+        alt="Unblurred Player"
+        style="
+          display: none;
+          max-width: 300px;
+          max-height: 400px;
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+        "
       />
     </div>
 
@@ -92,6 +111,14 @@
     <!-- Next button (initially hidden) -->
     <button id="nextButton" style="display: none">Next</button>
 
+    <!-- Game Over Section (initially hidden) -->
+    <div id="gameOver" style="display: none">
+      <h2>Game Over!</h2>
+      <p>The correct player was: <span id="correctName"></span></p>
+      <p>Your Score: <span id="finalScore"></span></p>
+      <button id="playAgainButton">Play Again</button>
+    </div>
+
     <script>
       document
         .getElementById("guessForm")
@@ -116,6 +143,12 @@
               const playerImage = document.getElementById("playerImage");
               const unblurredImage = document.getElementById("unblurredImage");
               const nextButton = document.getElementById("nextButton");
+              const gameOverDiv = document.getElementById("gameOver");
+              const finalScoreSpan = document.getElementById("finalScore");
+              const playAgainButton =
+                document.getElementById("playAgainButton");
+              const correctNameSpan = document.getElementById("correctName");
+              const gameOverImage = document.getElementById("gameOverImage");
 
               if (data.result === "correct") {
                 resultDiv.innerHTML = `<p class="correct">Correct! It's ${data.full_name}. You earned 1 point.</p>`;
@@ -130,6 +163,21 @@
 
                 // Show the next button
                 nextButton.style.display = "inline-block";
+              } else if (data.result === "game_over") {
+                // Hide the game elements
+                playerImage.style.display = "none";
+                document.getElementById("guessForm").style.display = "none";
+                document.querySelector(".score").style.display = "none";
+                resultDiv.innerHTML = ""; // Clear any previous result
+
+                // Show the game over section
+                gameOverDiv.style.display = "block";
+                finalScoreSpan.textContent = data.current_score;
+                correctNameSpan.textContent = data.correct_name;
+
+                // Show the unblurred image on game over
+                gameOverImage.src = data.unblured_img;
+                gameOverImage.style.display = "block";
               } else {
                 let incorrectMessage = `<p class="incorrect">Incorrect.<br>This player is ${data.height}.</p>`;
                 if (data.show_info) {
@@ -151,6 +199,12 @@
         .getElementById("nextButton")
         .addEventListener("click", function () {
           window.location.reload(); // Reload the page to get a new player
+        });
+
+      document
+        .getElementById("playAgainButton")
+        .addEventListener("click", function () {
+          window.location.reload(); // Reload the page to play again
         });
     </script>
   </body>
