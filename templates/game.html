@@ -116,6 +116,7 @@
       <h2>Game Over!</h2>
       <p>The correct player was: <span id="correctName"></span></p>
       <p>Your Score: <span id="finalScore"></span></p>
+      <p>Your High Score: <span id="finalHighScore">{{ high_score }}</span></p>
       <button id="playAgainButton">Play Again</button>
     </div>
 
@@ -145,6 +146,8 @@
               const nextButton = document.getElementById("nextButton");
               const gameOverDiv = document.getElementById("gameOver");
               const finalScoreSpan = document.getElementById("finalScore");
+              const finalHighScoreSpan =
+                document.getElementById("finalHighScore");
               const playAgainButton =
                 document.getElementById("playAgainButton");
               const correctNameSpan = document.getElementById("correctName");
@@ -173,6 +176,7 @@
                 // Show the game over section
                 gameOverDiv.style.display = "block";
                 finalScoreSpan.textContent = data.current_score;
+                finalHighScoreSpan.textContent = data.high_score;
                 correctNameSpan.textContent = data.correct_name;
 
                 // Show the unblurred image on game over
