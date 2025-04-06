@@ -44,8 +44,11 @@ def game(userId):
         high_score = user.get("HighScore", 0)  # Default to 0 if not found
     else:
         high_score = 0  # Default to 0 if user not found
+<<<<<<< HEAD
         # If user doesn't exist, create a new user entry with default high score
         user_list.insert_one({"Userid": userId, "HighScore": 0})
+=======
+>>>>>>> dc7908e081e6db4947c7ef3462d17b22a437821d
 
     # Initialize the user's score if it's their first time
     if userId not in user_scores:
@@ -125,6 +128,7 @@ def guess():
 
             # Reset user's score and incorrect guesses
             current_score = user_scores.get(userId, 0)
+<<<<<<< HEAD
 
             # Get the user's current high score from the database
             user = user_list.find_one({"Userid": userId})
@@ -141,6 +145,8 @@ def guess():
                 )
                 high_score = current_score  # Update high_score to the new value
 
+=======
+>>>>>>> dc7908e081e6db4947c7ef3462d17b22a437821d
             user_scores[userId] = 0
             incorrect_guesses[userId] = 0
 
@@ -211,4 +217,8 @@ def autocomplete():
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     app.run(debug=True)
+=======
+    app.run(debug=True)
+>>>>>>> dc7908e081e6db4947c7ef3462d17b22a437821d
